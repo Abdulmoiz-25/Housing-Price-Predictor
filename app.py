@@ -3,7 +3,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-# Load the trained pipeline + model
+# Load the model only (no pipeline)
 model = joblib.load("final_model.pkl")
 
 st.title("🏡 California House Price Prediction")
@@ -19,21 +19,22 @@ AveOccup = st.number_input("Average Occupancy", min_value=1.0, max_value=10.0, v
 Latitude = st.slider("Latitude", 32.0, 42.0, 36.0)
 Longitude = st.slider("Longitude", -124.0, -114.0, -120.0)
 
-# Feature engineering
-rooms_per_household = AveRooms / (Population / AveOccup)
+# Derived features
+households = Population / AveOccup
+rooms_per_household = AveRooms / households
 bedrooms_per_room = AveBedrms / AveRooms
-population_per_household = Population / (Population / AveOccup)
+population_per_household = Population / households
 
-# Create input features DataFrame
+# Create input DataFrame
 features = pd.DataFrame([[
-    MedInc, HouseAge, AveRooms, AveBedrms, Population, AveOccup, Latitude, Longitude,
-    rooms_per_household, bedrooms_per_room, population_per_household
+    MedInc, HouseAge, AveRooms, AveBedrms, Population, households, AveOccup,
+    Latitude, Longitude, rooms_per_household, bedrooms_per_room, population_per_household
 ]], columns=[
-    'MedInc', 'HouseAge', 'AveRooms', 'AveBedrms', 'Population', 'AveOccup',
+    'MedInc', 'HouseAge', 'AveRooms', 'AveBedrms', 'Population', 'Households', 'AveOccup',
     'Latitude', 'Longitude', 'rooms_per_household', 'bedrooms_per_room', 'population_per_household'
 ])
 
-# Prediction button
+# Predict
 if st.button("Predict Price"):
     prediction = model.predict(features)
     st.success(f"🏠 Estimated Median House Value: **${prediction[0] * 100000:,.2f}**")
